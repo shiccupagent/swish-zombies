@@ -10,12 +10,12 @@ export interface InputState {
   isRolling: boolean;
   isMeleeing: boolean;
   isReloading: boolean;
-  isDeploying: boolean;
   isInteracting: boolean;
   swapWeapon: boolean;
   selectWeaponSlot: number | null; // 0 or 1
   toggleFlashlight: boolean;
-  cycleDeployable: number;
+  /** [G] key — throw a grenade. */
+  throwGrenade: boolean;
 }
 
 export class InputManager {
@@ -30,7 +30,7 @@ export class InputManager {
   private rollTriggered: boolean = false;
   private meleeTriggered: boolean = false;
   private reloadTriggered: boolean = false;
-  private deployTriggered: boolean = false;
+  private grenadeTriggered: boolean = false;
   private interactTriggered: boolean = false;
   private swapTriggered: boolean = false;
   private slotSelected: number | null = null;
@@ -52,17 +52,15 @@ export class InputManager {
       } else if (e.code === 'KeyR') {
         this.reloadTriggered = true;
       } else if (e.code === 'KeyT') {
-        this.deployTriggered = true;
+        this.flashlightTriggered = true;
+      } else if (e.code === 'KeyG') {
+        this.grenadeTriggered = true;
       } else if (e.code === 'KeyL') {
         this.flashlightTriggered = true;
       } else if (e.code === 'Digit1') {
         this.slotSelected = 0;
       } else if (e.code === 'Digit2') {
         this.slotSelected = 1;
-      } else if (e.code === 'Digit3') {
-        this.cycleDep = 1;
-      } else if (e.code === 'Digit4') {
-        this.cycleDep = 2;
       }
     });
 
@@ -133,12 +131,11 @@ export class InputManager {
       isRolling: this.rollTriggered,
       isMeleeing: this.meleeTriggered,
       isReloading: this.reloadTriggered,
-      isDeploying: this.deployTriggered,
       isInteracting: this.interactTriggered,
       swapWeapon: this.swapTriggered,
       selectWeaponSlot: this.slotSelected,
       toggleFlashlight: this.flashlightTriggered,
-      cycleDeployable: this.cycleDep,
+      throwGrenade: this.grenadeTriggered,
     };
 
     // Reset single-frame triggers
@@ -146,12 +143,11 @@ export class InputManager {
     this.rollTriggered = false;
     this.meleeTriggered = false;
     this.reloadTriggered = false;
-    this.deployTriggered = false;
+    this.grenadeTriggered = false;
     this.interactTriggered = false;
     this.swapTriggered = false;
     this.slotSelected = null;
     this.flashlightTriggered = false;
-    this.cycleDep = 0;
 
     return state;
   }
