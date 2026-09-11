@@ -4,6 +4,7 @@ export interface InputState {
   moveX: number; // -1 to 1
   moveZ: number; // -1 to 1
   aimX: number;  // court floor world X
+  aimY: number;  // court floor world Y (verticality aware)
   aimZ: number;  // court floor world Z
   isFiring: boolean;
   justFired: boolean;
@@ -16,6 +17,8 @@ export interface InputState {
   toggleFlashlight: boolean;
   /** [G] key — throw a grenade. */
   throwGrenade: boolean;
+  /** [Z] / [C] keys — camera rotation snap (-1 for left, 1 for right). */
+  rotateCamera: number;
 }
 
 export class InputManager {
@@ -35,7 +38,7 @@ export class InputManager {
   private swapTriggered: boolean = false;
   private slotSelected: number | null = null;
   private flashlightTriggered: boolean = false;
-  private cycleDep: number = 0;
+  private cameraRotateTrigger: number = 0;
 
   constructor(canvas: HTMLCanvasElement) {
     window.addEventListener('keydown', (e) => {
@@ -55,6 +58,10 @@ export class InputManager {
         this.flashlightTriggered = true;
       } else if (e.code === 'KeyG') {
         this.grenadeTriggered = true;
+      } else if (e.code === 'KeyZ') {
+        this.cameraRotateTrigger = -1;
+      } else if (e.code === 'KeyC') {
+        this.cameraRotateTrigger = 1;
       } else if (e.code === 'KeyL') {
         this.flashlightTriggered = true;
       } else if (e.code === 'Digit1') {
@@ -104,7 +111,8 @@ export class InputManager {
     });
   }
 
-  sample(camera: THREE.Camera): InputState {
+  sample(camera: THREE.Camera, targetFloorY = 0): InputState {
+    this.groundPlane.constant = targetFloorY;
     this.raycaster.setFromCamera(this.mousePos, camera);
     this.raycaster.ray.intersectPlane(this.groundPlane, this.courtIntersection);
 
@@ -125,6 +133,7 @@ export class InputManager {
       moveX: mx,
       moveZ: mz,
       aimX: this.courtIntersection.x,
+      aimY: targetFloorY,
       aimZ: this.courtIntersection.z,
       isFiring: this.isMouseDown,
       justFired: this.justFiredFlag,
@@ -136,6 +145,7 @@ export class InputManager {
       selectWeaponSlot: this.slotSelected,
       toggleFlashlight: this.flashlightTriggered,
       throwGrenade: this.grenadeTriggered,
+      rotateCamera: this.cameraRotateTrigger,
     };
 
     // Reset single-frame triggers
@@ -148,6 +158,7 @@ export class InputManager {
     this.swapTriggered = false;
     this.slotSelected = null;
     this.flashlightTriggered = false;
+    this.cameraRotateTrigger = 0;
 
     return state;
   }
